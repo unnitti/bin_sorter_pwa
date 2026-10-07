@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f7f9fc">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Bin Sorter</title>
+  <title>지번 정렬</title>
   <link rel="stylesheet" href="style.css">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="manifest" href="manifest.json">
@@ -15,8 +15,8 @@
     <header class="header">
       <div class="app-icon" aria-hidden="true">⇧</div>
       <div class="title-wrap">
-        <h1>Bin Sorter</h1>
-        <p>클립보드의 Bin 코드를 정렬하고 변환합니다.</p>
+        <h1>지번 정렬</h1>
+        <p>클립보드의 지번 코드를 정렬하고 변환합니다.</p>
       </div>
       <div id="stateIcon" class="state-icon" aria-hidden="true">✓</div>
     </header>
@@ -39,8 +39,8 @@
 
     <details class="help">
       <summary>정렬 기준</summary>
-      <p><b>11</b>은 고정하고, 영문 2자리를 알파벳 순으로 정렬합니다. 영문이 같으면 뒤 7자리 숫자를 오름차순으로 정렬합니다.</p>
-      <p class="example"><code>11pb0131001</code> → <code>pb1-31-001</code></p>
+      <p>앞 두 자리 숫자는 무시하고, 영문 2자리를 알파벳 순으로 정렬합니다. 영문이 같으면 뒤 7자리 숫자를 오름차순으로 정렬합니다.</p>
+      <p class="example"><code>11pb0131001</code> → <code>PB1-31-001</code></p>
     </details>
   </main>
   <script src="app.js"></script>

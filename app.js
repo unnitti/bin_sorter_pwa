@@ -5,8 +5,8 @@ const emptyState = document.querySelector('#emptyState');
 const retryButton = document.querySelector('#retry');
 const stateIcon = document.querySelector('#stateIcon');
 
-// 11 + 영문 2자리 + 숫자 7자리
-const CODE_RE = /^11([a-z]{2})(\d{7})$/i;
+// 앞 두 자리 숫자 + 영문 2자리 + 숫자 7자리
+const CODE_RE = /^\d{2}([a-z]{2})(\d{7})$/i;
 
 function setStatus(message, busy = false) {
   statusEl.textContent = message;
@@ -31,7 +31,7 @@ function parseAndSort(text) {
       continue;
     }
 
-    const letters = match[1].toLowerCase();
+    const letters = match[1].toUpperCase();
     const digits = match[2];
     valid.push({ letters, number: Number(digits), digits });
   }

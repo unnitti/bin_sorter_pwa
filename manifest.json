@@ -1,6 +1,6 @@
 {
-  "name": "Bin Sorter",
-  "short_name": "Bin Sorter",
+  "name": "지번 정렬",
+  "short_name": "지번 정렬",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
