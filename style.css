@@ -199,3 +199,63 @@ h1 {
 @media (prefers-reduced-motion: reduce) {
   .state-icon.busy { animation: none; }
 }
+
+
+.heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.text-button {
+  border: 0;
+  padding: 4px 0;
+  background: transparent;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 650;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.text-button:disabled {
+  color: #aeb9c7;
+}
+
+.result-list li {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.result-list li:active,
+.result-list li:focus-visible {
+  background: #f2f7ff;
+  outline: none;
+}
+
+.secondary-button {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 12px;
+  border: 1px solid #dbe8f7;
+  border-radius: 15px;
+  background: white;
+  color: var(--blue-dark);
+  font-size: 14px;
+  font-weight: 650;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.secondary-button:active,
+.primary-button:active {
+  transform: scale(.99);
+}
+
+.secondary-button:disabled {
+  border-color: #edf0f4;
+  background: #f7f8fa;
+  color: #aeb7c3;
+}
+
+.primary-button {
+  margin-top: 8px;
+}

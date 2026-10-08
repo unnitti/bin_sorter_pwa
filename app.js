@@ -2,11 +2,16 @@ const statusEl = document.querySelector('#status');
 const countEl = document.querySelector('#count');
 const resultList = document.querySelector('#resultList');
 const emptyState = document.querySelector('#emptyState');
-const retryButton = document.querySelector('#retry');
+const importButton = document.querySelector('#importClipboard');
+const copyAllButton = document.querySelector('#copyAll');
+const sortToggleButton = document.querySelector('#sortToggle');
 const stateIcon = document.querySelector('#stateIcon');
 
-// 앞 두 자리 숫자 + 영문 2자리 + 숫자 7자리
+// 앞 두 자리 숫자는 무시하고, 영문 2자리 + 숫자 7자리만 사용합니다.
 const CODE_RE = /^\d{2}([a-z]{2})(\d{7})$/i;
+
+let sortedItems = [];
+let sortDescending = false;
 
 function setStatus(message, busy = false) {
   statusEl.textContent = message;
@@ -15,7 +20,6 @@ function setStatus(message, busy = false) {
 }
 
 function cleanClipboard(text) {
-  // 공백/탭/줄바꿈 등은 모두 항목 구분자로 보고 제거합니다.
   return text.split(/\s+/).map(value => value.trim()).filter(Boolean);
 }
 
@@ -36,12 +40,13 @@ function parseAndSort(text) {
     valid.push({ letters, number: Number(digits), digits });
   }
 
-  valid.sort((a, b) => {
-    const letterOrder = a.letters.localeCompare(b.letters, 'en', { sensitivity: 'base' });
-    return letterOrder || a.number - b.number;
-  });
-
+  valid.sort(compareItems);
   return { valid, invalidCount };
+}
+
+function compareItems(a, b) {
+  const letterOrder = a.letters.localeCompare(b.letters, 'en', { sensitivity: 'base' });
+  return letterOrder || a.number - b.number;
 }
 
 function formatCode(item) {
@@ -51,28 +56,68 @@ function formatCode(item) {
   return `${item.letters}${first}-${second}-${third}`;
 }
 
-function showResults(items) {
+function updateSortButton() {
+  sortToggleButton.textContent = sortDescending ? '오름차순' : '내림차순';
+  sortToggleButton.setAttribute('aria-label', `${sortDescending ? '오름차순' : '내림차순'}으로 정렬`);
+}
+
+async function copyText(text, successMessage) {
+  try {
+    await navigator.clipboard.writeText(text);
+    setStatus(successMessage);
+    return true;
+  } catch {
+    setStatus('클립보드에 복사하지 못했습니다.');
+    return false;
+  }
+}
+
+function showResults(items, invalidCount = 0) {
   resultList.replaceChildren();
+  sortedItems = items;
 
   if (!items.length) {
     emptyState.hidden = false;
     countEl.textContent = '0개';
-    return '';
+    copyAllButton.disabled = true;
+    sortToggleButton.disabled = true;
+    return;
   }
 
   emptyState.hidden = true;
-  const output = [];
+  copyAllButton.disabled = false;
+  sortToggleButton.disabled = false;
 
   for (const item of items) {
     const value = formatCode(item);
-    output.push(value);
     const li = document.createElement('li');
     li.textContent = value;
+    li.tabIndex = 0;
+    li.setAttribute('role', 'button');
+    li.setAttribute('aria-label', `${value} 복사`);
+    li.addEventListener('click', () => copyText(value, `${value}가 클립보드에 복사되었습니다.`));
+    li.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        copyText(value, `${value}가 클립보드에 복사되었습니다.`);
+      }
+    });
     resultList.appendChild(li);
   }
 
-  countEl.textContent = `${items.length}개`;
-  return output.join('\n');
+  countEl.textContent = `${items.length}개 · ${sortDescending ? '내림차순' : '오름차순'}`;
+
+  if (invalidCount) {
+    setStatus(`${items.length}개를 정렬했습니다. ${invalidCount}개는 제외되었습니다.`);
+  } else {
+    setStatus(`${items.length}개를 정렬했습니다. 필요한 줄을 누르거나 전체 복사를 이용하세요.`);
+  }
+}
+
+function applySort() {
+  sortedItems = [...sortedItems].sort(compareItems);
+  if (sortDescending) sortedItems.reverse();
+  showResults(sortedItems);
 }
 
 async function processClipboard() {
@@ -81,27 +126,31 @@ async function processClipboard() {
   try {
     const text = await navigator.clipboard.readText();
     const { valid, invalidCount } = parseAndSort(text);
-    const output = showResults(valid);
+    if (sortDescending) valid.reverse();
+    showResults(valid, invalidCount);
 
     if (!valid.length) {
-      setStatus('정렬할 수 있는 코드가 없습니다.');
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(output);
-      const suffix = invalidCount ? ` · ${invalidCount}개 제외` : '';
-      setStatus(`${valid.length}개가 정렬되어 클립보드에 복사되었습니다${suffix}.`);
-    } catch {
-      setStatus(`${valid.length}개를 정렬했습니다. 클립보드 복사는 허용되지 않았습니다.`);
+      setStatus('정렬할 수 있는 지번이 없습니다.');
     }
   } catch {
     showResults([]);
-    setStatus('클립보드 접근이 필요합니다. 아래 버튼을 눌러 다시 시도해 주세요.');
+    setStatus('아래 클립보드 가져오기 버튼을 눌러주세요.');
   }
 }
 
-retryButton.addEventListener('click', processClipboard);
+sortToggleButton.addEventListener('click', () => {
+  sortDescending = !sortDescending;
+  updateSortButton();
+  if (sortedItems.length) applySort();
+});
 
-// 앱 실행 시 바로 처리합니다.
-processClipboard();
+copyAllButton.addEventListener('click', () => {
+  const output = sortedItems.map(formatCode).join('\n');
+  copyText(output, `${sortedItems.length}개가 클립보드에 복사되었습니다.`);
+});
+
+importButton.addEventListener('click', processClipboard);
+
+updateSortButton();
+showResults([]);
+setStatus('클립보드의 지번을 가져오려면 아래 버튼을 눌러주세요.');
