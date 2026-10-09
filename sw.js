@@ -38,22 +38,21 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  event.respondWith(
-    caches.open(CACHE).then(async (cache) => {
-      const cached = await cache.match(event.request);
-      const network = fetch(event.request)
-        .then((response) => {
-          if (response && response.ok) {
-            cache.put(event.request, response.clone());
-          }
-          return response;
-        })
-        .catch((error) => {
-          if (cached) return cached;
-          throw error;
-        });
-
-      return cached || network;
+  const networkUpdate = caches.open(CACHE).then((cache) =>
+    fetch(event.request).then((response) => {
+      if (response && response.ok) {
+        return cache.put(event.request, response.clone()).then(() => response);
+      }
+      return response;
     })
+  );
+
+  // Keep the refresh alive even when a cached response is returned immediately.
+  event.waitUntil(networkUpdate.then(() => undefined).catch(() => undefined));
+
+  event.respondWith(
+    caches.open(CACHE)
+      .then((cache) => cache.match(event.request))
+      .then((cached) => cached || networkUpdate)
   );
 });
