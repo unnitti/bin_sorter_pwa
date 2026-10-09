@@ -12,4 +12,6 @@ https://github.com/unnitti/photo_text_pwa/blob/main/AI_RULES.md
 
 단, 현재 저장소의 프로젝트 특성에 맞는 별도 규칙이 있는 경우에는, 아래의 프로젝트별 규칙에 기재한다.
 
-### 프로젝트별 주의사항
+### 프로젝트별 개별 규칙
+
+없음
