@@ -1,4 +1,4 @@
-const CACHE = 'bin-sorter-cache-v01';
+const CACHE = 'bin-sorter-cache-v02';
 
 const ASSETS = [
   './',
@@ -39,16 +39,21 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
+    caches.open(CACHE).then(async (cache) => {
+      const cached = await cache.match(event.request);
+      const network = fetch(event.request)
+        .then((response) => {
+          if (response && response.ok) {
+            cache.put(event.request, response.clone());
+          }
+          return response;
+        })
+        .catch((error) => {
+          if (cached) return cached;
+          throw error;
+        });
 
-      return fetch(event.request).then((response) => {
-        if (response && response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE).then((cache) => cache.put(event.request, copy));
-        }
-        return response;
-      });
+      return cached || network;
     })
   );
 });
